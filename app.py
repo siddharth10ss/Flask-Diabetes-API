@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
 
@@ -11,16 +11,16 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Diabetes Prediction API is running!"})
+    return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get JSON data from request
-        data = request.get_json()
+        # Get form data from request
+        data = request.form['features']
 
         # Convert input to numpy array
-        features = np.array(data['features']).reshape(1, -1)
+        features = np.array([float(x) for x in data.split(',')]).reshape(1, -1)
 
         # Scale input
         features_scaled = scaler.transform(features)
