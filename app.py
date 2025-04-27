@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, render_template
 import joblib
 import numpy as np
+import os
 
-# Load trained model and scaler
+# Load the trained model and scaler
 model = joblib.load("model/diabetes_rfr_model.pkl")
 scaler = joblib.load("model/scaler.pkl")
 
@@ -16,22 +17,22 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get form data from request
-        data = request.form['features']
+        # Get JSON data from form submission
+        data = request.get_json()
+        features = np.array(data['features']).reshape(1, -1)
 
-        # Convert input to numpy array
-        features = np.array([float(x) for x in data.split(',')]).reshape(1, -1)
-
-        # Scale input
+        # Scale the features using the saved scaler
         features_scaled = scaler.transform(features)
 
-        # Predict
+        # Predict using the loaded model
         prediction = model.predict(features_scaled)
 
+        # Return the prediction result
         return jsonify({"prediction": float(prediction[0])})
 
     except Exception as e:
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
